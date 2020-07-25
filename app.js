@@ -1,3 +1,10 @@
+// This application logs in a user using passport js local authentication strategy (username or email and password)
+// and then on successful authentication, redirects the user to a covid19 dashboard containing the current global
+// as well as the Indian summary. I have not much focussed on the styling part and have used simple Bootstrap classes 
+// to make the application presentable.
+
+
+
 const express = require('express'),
       bodyParser = require('body-parser'),
       mongoose = require('mongoose'),
@@ -17,7 +24,7 @@ mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
-mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/Auth_Demo")
+mongoose.connect("mongodb+srv://iamzacker:iamzacker@passport-authentication.tzl7u.gcp.mongodb.net/<dbname>?retryWrites=true&w=majority")
     .then(() => console.log("Connection successful!"))
     .catch((err) => console.log(err));
 
