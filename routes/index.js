@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/user');
 const passport = require('passport');
+const request = require("request");
 
 const router = express.Router();
 
@@ -9,7 +10,21 @@ router.get("/", (req, res) => {
 });
 
 router.get("/secret", isLoggedIn, (req, res) => {
-    res.render("secret");
+    var url = "https://api.covid19api.com/summary";
+    request(url, (err, response, body) => {
+        if(!err && response.statusCode == 200){
+            var data = JSON.parse(body);
+            var IndiaData;
+            data.Countries.forEach(country => {
+                if(country.Country === 'India'){
+                    IndiaData = country;
+                }
+            })
+            res.render("secret", {data: data, IndiaData: IndiaData});
+        }else{
+            res.send("Some error occured!");
+        }
+    })
 });
 
 router.get("/login", (req, res) => {
@@ -31,13 +46,18 @@ router.post("/signup", (req, res) => {
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
-
-    // Look for an existing user
-    User.findOne().or([{username: username}, {email: email}])
+    // Check for password length
+    if(password.length < 8){
+        req.flash("error", "Password must be atleast 8 characters");
+        return res.redirect("/signup");
+    }
+    else{
+        // Look for an existing user
+        User.findOne().or([{username: username}, {email: email}])
         .then(user => {
             if(user){
                 req.flash("error", "User already exists");
-                res.redirect("/signup");
+                return res.redirect("/signup");
                 console.log("Redirected!");
             }
             else{
@@ -60,6 +80,9 @@ router.post("/signup", (req, res) => {
             req.flash("error", err.message);
             return res.redirect("/signup");
         })
+    }
+
+    
 });
 
 // Logout User
@@ -68,6 +91,7 @@ router.get("/logout", (req, res) => {
     req.flash("success", "Logged you out!");
     res.redirect("/");
 });
+
 
 function isLoggedIn(req, res, next){
     if(req.isAuthenticated()){
